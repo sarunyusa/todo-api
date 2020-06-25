@@ -265,7 +265,7 @@ func TestTodoUseCase_DeleteTodo(t *testing.T) {
 		assert.Equal(t, httpErr.Error(), "id is blank")
 	})
 
-	t.Run("update fail, database error", func(t *testing.T) {
+	t.Run("delete fail, database error", func(t *testing.T) {
 		db, smock, repo := createMock()
 
 		id := util.NewID()
@@ -279,6 +279,84 @@ func TestTodoUseCase_DeleteTodo(t *testing.T) {
 		u := NewTodoUseCase(db, &repo)
 
 		err := u.DeleteTodo(context.Background(), id)
+
+		require.NotNil(t, err)
+
+		assert.Equal(t, err.Error(), "db error")
+	})
+}
+
+func TestTodoUseCase_SetTodoDone(t *testing.T) {
+	t.Run("set done success", func(t *testing.T) {
+		db, smock, repo := createMock()
+
+		id := util.NewID()
+
+		repo.On("GetById", mock.Anything, mock.Anything, mock.Anything).
+			Return(&entity.Todo{}, nil)
+
+		repo.On("UpdateTodo", mock.Anything, mock.Anything, mock.Anything).
+			Return(&entity.Todo{}, nil)
+
+		smock.ExpectBegin()
+		smock.ExpectCommit()
+
+		u := NewTodoUseCase(db, &repo)
+
+		err := u.SetTodoDone(context.Background(), id)
+
+		require.Nil(t, err)
+	})
+
+	t.Run("set done fail, id is blank", func(t *testing.T) {
+		db, _, repo := createMock()
+
+		u := NewTodoUseCase(db, &repo)
+
+		err := u.SetTodoDone(context.Background(), "")
+
+		require.NotNil(t, err)
+		require.True(t, pkgerror.IsHttpError(err))
+
+		httpErr := err.(pkgerror.HttpError)
+		assert.Equal(t, httpErr.Code(), http.StatusBadRequest)
+		assert.Equal(t, httpErr.Error(), "id is blank")
+	})
+
+	t.Run("set done fail, get todo error", func(t *testing.T) {
+		db, _, repo := createMock()
+
+		id := util.NewID()
+
+		repo.On("GetById", mock.Anything, mock.Anything, mock.Anything).
+			Return(nil, fmt.Errorf("get todo error"))
+
+		u := NewTodoUseCase(db, &repo)
+
+		err := u.SetTodoDone(context.Background(), id)
+
+		require.NotNil(t, err)
+
+		assert.Equal(t, err.Error(), "get todo error")
+	})
+
+	t.Run("set done fail, database error", func(t *testing.T) {
+		db, smock, repo := createMock()
+
+		id := util.NewID()
+
+		repo.On("GetById", mock.Anything, mock.Anything, mock.Anything).
+			Return(&entity.Todo{}, nil)
+
+		repo.On("UpdateTodo", mock.Anything, mock.Anything, mock.Anything).
+			Return(nil, fmt.Errorf("db error"))
+
+		smock.ExpectBegin()
+		smock.ExpectRollback()
+
+		u := NewTodoUseCase(db, &repo)
+
+		err := u.SetTodoDone(context.Background(), id)
 
 		require.NotNil(t, err)
 
