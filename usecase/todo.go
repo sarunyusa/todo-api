@@ -149,7 +149,7 @@ func (u *todoUseCase) UpdateTodo(ctx context.Context, id string, content *model.
 }
 
 func (u *todoUseCase) DeleteTodo(ctx context.Context, id string) error {
-	log := pkgcontext.GetLoggerFromContext(ctx).WithServiceInfo("UpdateTodo")
+	log := pkgcontext.GetLoggerFromContext(ctx).WithServiceInfo("DeleteTodo")
 	l := log.WithField("id", id)
 	defer stopwatch.StartWithLogger(l).Stop()
 
@@ -185,7 +185,47 @@ func (u *todoUseCase) DeleteTodo(ctx context.Context, id string) error {
 }
 
 func (u *todoUseCase) SetTodoDone(ctx context.Context, id string) error {
-	panic("implement me")
+	log := pkgcontext.GetLoggerFromContext(ctx).WithServiceInfo("SetTodoDone")
+	l := log.WithField("id", id)
+	defer stopwatch.StartWithLogger(l).Stop()
+
+	if id == "" {
+		err := pkgerror.NewHttpError(http.StatusBadRequest, fmt.Errorf("id is blank"))
+		log.Error(err)
+		return err
+	}
+
+	t, err := u.todoRepo.GetById(ctx, u.db, id)
+	if err != nil {
+		log.WithError(err).Error("get todo error")
+		return err
+	}
+
+	t.IsDone = true
+
+	_, err = func(ctx context.Context, db *gorm.DB) (*entity.Todo, error) {
+
+		defer db.RollbackUnlessCommitted()
+
+		res, err := u.todoRepo.UpdateTodo(ctx, db, t)
+		if err != nil {
+			log.WithError(err).Error("update todo error")
+			return nil, err
+		}
+
+		if err = db.Commit().Error; err != nil {
+			log.WithError(err).Error("commit error")
+			return nil, err
+		}
+
+		return res, nil
+	}(ctx, u.db.Begin())
+	if err != nil {
+		log.WithError(err).Error("set done error")
+		return err
+	}
+
+	return nil
 }
 
 func (u *todoUseCase) GetNotDoneTodo(ctx context.Context) (*[]model.TodoInfo, error) {
