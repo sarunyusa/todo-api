@@ -1,8 +1,13 @@
 package automigrate
 
-import "github.com/jinzhu/gorm"
+import (
+	"github.com/jinzhu/gorm"
+	"todo/entity"
+)
 
-var tableList = []interface{}{}
+var tableList = []interface{}{
+	&entity.Todo{},
+}
 
 func MigrateDB(db *gorm.DB) {
 	db.AutoMigrate(tableList...)
