@@ -10,7 +10,7 @@ import (
 func loadDevConfigFile() *ConfigFile {
 	config := &ConfigFile{
 		Database: &DatabaseConfig{
-			ConnectionString:   ptr.String("postgresql://postgres:P@ssw0rd@localhost:9990?sslmode=disable"),
+			ConnectionString:   ptr.String("postgresql://postgres:P@ssw0rd@todo-postgres:5432?sslmode=disable"),
 			DatabaseName:       ptr.String("todo-local"),
 			GormDebug:          ptr.Bool(false),
 			CreateDbIfNotExist: ptr.Bool(true),
@@ -18,7 +18,7 @@ func loadDevConfigFile() *ConfigFile {
 			RecreateDb:         ptr.Bool(false),
 		},
 		Todo: &TodoConfig{
-			Host: ptr.String("localhost"),
+			Host: ptr.String("0.0.0.0"),
 			Port: ptr.Int(8080),
 		},
 	}

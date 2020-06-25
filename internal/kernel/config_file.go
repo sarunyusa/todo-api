@@ -18,7 +18,7 @@ type TodoConfig struct {
 
 func (c *TodoConfig) GetHost() string {
 	if c == nil || c.Host == nil {
-		return "localhost"
+		return "0.0.0.0"
 	}
 
 	return *c.Host
