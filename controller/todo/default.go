@@ -25,6 +25,14 @@ func New(p OptionsProvider) *pkg.Server {
 
 	s.AddHandler(http.MethodGet, "/", pkghttp.Echo("OK")) // health check
 
+	s.AddHandler(http.MethodPost, "/todo", e.CreateTodo)
+	s.AddHandler(http.MethodPut, "/todo/{id}", e.UpdateTodo)
+	s.AddHandler(http.MethodDelete, "/todo/{id}", e.DeleteTodo)
+	s.AddHandler(http.MethodPut, "/todo/{id}/done", e.SetTodoDone)
+
+	s.AddHandler(http.MethodGet, "/todo", e.GetNotDone)
+	s.AddHandler(http.MethodGet, "/todo/{id}", e.GetById)
+
 	return &pkg.Server{
 		Http:        s,
 		HttpAddress: opts.HttpAddress,
