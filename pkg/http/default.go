@@ -55,3 +55,11 @@ func NewServer() *Server {
 		r: r,
 	}
 }
+
+func Echo(s string) httpHandler {
+	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+		w.WriteHeader(200)
+		_, err := w.Write([]byte(s))
+		return err
+	}
+}
