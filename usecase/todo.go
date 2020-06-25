@@ -229,7 +229,32 @@ func (u *todoUseCase) SetTodoDone(ctx context.Context, id string) error {
 }
 
 func (u *todoUseCase) GetNotDoneTodo(ctx context.Context) (*[]model.TodoInfo, error) {
-	panic("implement me")
+	log := pkgcontext.GetLoggerFromContext(ctx).WithServiceInfo("GetNotDoneTodo")
+	defer stopwatch.StartWithLogger(log).Stop()
+
+	list, err := u.todoRepo.GetNotDone(ctx, u.db)
+	if err != nil {
+		log.WithError(err).Error("get todo error")
+		return nil, err
+	}
+
+	res := make([]model.TodoInfo, len(*list))
+
+	for i, td := range *list {
+		res[i] = model.TodoInfo{
+			TodoContent: model.TodoContent{
+				Topic:   td.Topic,
+				Detail:  td.Detail,
+				DueDate: td.DueDate,
+			},
+			ID:       td.ID,
+			IsDone:   td.IsDone,
+			CreateAt: td.CreatedAt,
+			UpdateAt: td.UpdatedAt,
+		}
+	}
+
+	return &res, nil
 }
 
 func (u *todoUseCase) GetTodoById(ctx context.Context, id string) (*model.TodoInfo, error) {
