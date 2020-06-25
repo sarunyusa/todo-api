@@ -15,7 +15,7 @@ func (e *httpError) Code() int {
 }
 
 func (e *httpError) Error() string {
-	return e.Error()
+	return e.err.Error()
 }
 
 func NewHttpError(code int, err error) HttpError {

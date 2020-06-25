@@ -50,10 +50,10 @@ func TestTodoUseCase_CreateTodo(t *testing.T) {
 
 		u := NewTodoUseCase(db, &repo)
 
-		res, err := u.CreateTodo(context.Background(), &model.TodoContent{})
+		res, err := u.CreateTodo(context.Background(), &model.TodoContent{Topic: "test topic"})
 
-		require.NotNil(t, res)
 		require.Nil(t, err)
+		require.NotNil(t, res)
 
 		assert.Equal(t, res.ID, todo.ID)
 		assert.Equal(t, res.CreateAt, todo.CreatedAt)
@@ -69,8 +69,8 @@ func TestTodoUseCase_CreateTodo(t *testing.T) {
 
 		content := &model.TodoContent{
 			Topic:   "",
-			Detail:  "test detail",
-			DueDate: time.Now(),
+			Detail:  ptr.String("test detail"),
+			DueDate: ptr.Time(time.Now()),
 		}
 
 		u := NewTodoUseCase(db, &repo)
@@ -97,7 +97,7 @@ func TestTodoUseCase_CreateTodo(t *testing.T) {
 
 		u := NewTodoUseCase(db, &repo)
 
-		res, err := u.CreateTodo(context.Background(), &model.TodoContent{})
+		res, err := u.CreateTodo(context.Background(), &model.TodoContent{Topic: "test topic"})
 
 		require.Nil(t, res)
 		require.NotNil(t, err)

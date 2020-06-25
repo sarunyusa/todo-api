@@ -3,6 +3,7 @@ module todo
 go 1.12
 
 require (
+	bitbucket.org/inceptionasia/penknife v0.0.0-20200616092532-ce800039fe31 // indirect
 	github.com/denisenkom/go-mssqldb v0.0.0-20200620013148-b91950f658ec // indirect
 	github.com/gorilla/mux v1.7.4
 	github.com/jinzhu/gorm v1.9.14
