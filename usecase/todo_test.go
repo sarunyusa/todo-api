@@ -363,3 +363,76 @@ func TestTodoUseCase_SetTodoDone(t *testing.T) {
 		assert.Equal(t, err.Error(), "db error")
 	})
 }
+
+func TestTodoUseCase_GetTodoById(t *testing.T) {
+	t.Run("get by id success", func(t *testing.T) {
+		db, _, repo := createMock()
+
+		id := util.NewID()
+
+		todo := &entity.Todo{
+			Base: entity.Base{
+				ID:        util.NewID(),
+				CreatedAt: time.Now(),
+				UpdatedAt: time.Now(),
+				DeletedAt: nil,
+			},
+			Topic:   "test topic",
+			Detail:  ptr.String("test detail"),
+			DueDate: ptr.Time(time.Now()),
+			IsDone:  false,
+		}
+
+		repo.On("GetById", mock.Anything, mock.Anything, mock.Anything).
+			Return(todo, nil)
+
+		u := NewTodoUseCase(db, &repo)
+
+		res, err := u.GetTodoById(context.Background(), id)
+
+		require.Nil(t, err)
+		require.NotNil(t, res)
+
+		assert.Equal(t, res.ID, todo.ID)
+		assert.Equal(t, res.CreateAt, todo.CreatedAt)
+		assert.Equal(t, res.UpdateAt, todo.UpdatedAt)
+		assert.Equal(t, res.Topic, todo.Topic)
+		assert.Equal(t, res.Detail, todo.Detail)
+		assert.Equal(t, res.DueDate, todo.DueDate)
+		assert.Equal(t, res.IsDone, todo.IsDone)
+	})
+
+	t.Run("get by id fail, id is blank", func(t *testing.T) {
+		db, _, repo := createMock()
+
+		u := NewTodoUseCase(db, &repo)
+
+		res, err := u.GetTodoById(context.Background(), "")
+
+		require.Nil(t, res)
+		require.NotNil(t, err)
+		require.True(t, pkgerror.IsHttpError(err))
+
+		httpErr := err.(pkgerror.HttpError)
+		assert.Equal(t, httpErr.Code(), http.StatusBadRequest)
+		assert.Equal(t, httpErr.Error(), "id is blank")
+	})
+
+	t.Run("set done fail, get todo error", func(t *testing.T) {
+		db, _, repo := createMock()
+
+		id := util.NewID()
+
+		repo.On("GetById", mock.Anything, mock.Anything, mock.Anything).
+			Return(nil, fmt.Errorf("get todo error"))
+
+		u := NewTodoUseCase(db, &repo)
+
+		res, err := u.GetTodoById(context.Background(), id)
+
+		require.Nil(t, res)
+		require.NotNil(t, err)
+
+		assert.Equal(t, err.Error(), "get todo error")
+	})
+}
