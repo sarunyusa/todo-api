@@ -123,6 +123,9 @@ func TestTodoUseCase_UpdateTodo(t *testing.T) {
 			IsDone:  false,
 		}
 
+		repo.On("GetById", mock.Anything, mock.Anything, mock.Anything).
+			Return(todo, nil)
+
 		repo.On("UpdateTodo", mock.Anything, mock.Anything, mock.Anything).
 			Return(todo, nil)
 
@@ -131,7 +134,7 @@ func TestTodoUseCase_UpdateTodo(t *testing.T) {
 
 		u := NewTodoUseCase(db, &repo)
 
-		res, err := u.UpdateTodo(context.Background(), &model.TodoContent{Topic: "test topic"})
+		res, err := u.UpdateTodo(context.Background(), todo.ID, &model.TodoContent{Topic: "test topic"})
 
 		require.Nil(t, err)
 		require.NotNil(t, res)
@@ -145,6 +148,28 @@ func TestTodoUseCase_UpdateTodo(t *testing.T) {
 		assert.Equal(t, res.IsDone, todo.IsDone)
 	})
 
+	t.Run("update fail, id is blank", func(t *testing.T) {
+		db, _, repo := createMock()
+
+		content := &model.TodoContent{
+			Topic:   "",
+			Detail:  ptr.String("test detail"),
+			DueDate: ptr.Time(time.Now()),
+		}
+
+		u := NewTodoUseCase(db, &repo)
+
+		res, err := u.UpdateTodo(context.Background(), "", content)
+
+		require.Nil(t, res)
+		require.NotNil(t, err)
+		require.True(t, pkgerror.IsHttpError(err))
+
+		httpErr := err.(pkgerror.HttpError)
+		assert.Equal(t, httpErr.Code(), http.StatusBadRequest)
+		assert.Equal(t, httpErr.Error(), "id is blank")
+	})
+
 	t.Run("update fail, topic is blank", func(t *testing.T) {
 		db, _, repo := createMock()
 
@@ -156,7 +181,7 @@ func TestTodoUseCase_UpdateTodo(t *testing.T) {
 
 		u := NewTodoUseCase(db, &repo)
 
-		res, err := u.UpdateTodo(context.Background(), content)
+		res, err := u.UpdateTodo(context.Background(), util.NewID(), content)
 
 		require.Nil(t, res)
 		require.NotNil(t, err)
@@ -167,8 +192,27 @@ func TestTodoUseCase_UpdateTodo(t *testing.T) {
 		assert.Equal(t, httpErr.Error(), "topic is blank")
 	})
 
+	t.Run("update fail, get todo error", func(t *testing.T) {
+		db, _, repo := createMock()
+
+		repo.On("GetById", mock.Anything, mock.Anything, mock.Anything).
+			Return(nil, fmt.Errorf("get todo error"))
+
+		u := NewTodoUseCase(db, &repo)
+
+		res, err := u.UpdateTodo(context.Background(), util.NewID(), &model.TodoContent{Topic: "test topic"})
+
+		require.Nil(t, res)
+		require.NotNil(t, err)
+
+		assert.Equal(t, err.Error(), "get todo error")
+	})
+
 	t.Run("update fail, database error", func(t *testing.T) {
 		db, smock, repo := createMock()
+
+		repo.On("GetById", mock.Anything, mock.Anything, mock.Anything).
+			Return(&entity.Todo{}, nil)
 
 		repo.On("UpdateTodo", mock.Anything, mock.Anything, mock.Anything).
 			Return(nil, fmt.Errorf("db error"))
@@ -178,7 +222,7 @@ func TestTodoUseCase_UpdateTodo(t *testing.T) {
 
 		u := NewTodoUseCase(db, &repo)
 
-		res, err := u.UpdateTodo(context.Background(), &model.TodoContent{Topic: "test topic"})
+		res, err := u.UpdateTodo(context.Background(), util.NewID(), &model.TodoContent{Topic: "test topic"})
 
 		require.Nil(t, res)
 		require.NotNil(t, err)

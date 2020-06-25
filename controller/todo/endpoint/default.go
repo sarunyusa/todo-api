@@ -52,7 +52,10 @@ func (t *todoEndpoint) UpdateTodo(ctx context.Context, w http.ResponseWriter, r 
 		return err
 	}
 
-	res, err := t.todoUseCase.UpdateTodo(ctx, m)
+	v := mux.Vars(r)
+	id := v["id"]
+
+	res, err := t.todoUseCase.UpdateTodo(ctx, id, m)
 	if err != nil {
 		return err
 	}

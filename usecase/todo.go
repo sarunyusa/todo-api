@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"fmt"
 	"github.com/jinzhu/gorm"
 	"net/http"
 	"todo/entity"
@@ -15,7 +16,7 @@ import (
 
 type TodoUseCase interface {
 	CreateTodo(ctx context.Context, content *model.TodoContent) (*model.TodoInfo, error)
-	UpdateTodo(ctx context.Context, content *model.TodoContent) (*model.TodoInfo, error)
+	UpdateTodo(ctx context.Context, id string, content *model.TodoContent) (*model.TodoInfo, error)
 	DeleteTodo(ctx context.Context, id string) error
 	SetTodoDone(ctx context.Context, id string) error
 
@@ -83,8 +84,68 @@ func (u *todoUseCase) CreateTodo(ctx context.Context, content *model.TodoContent
 	return res, nil
 }
 
-func (u *todoUseCase) UpdateTodo(ctx context.Context, content *model.TodoContent) (*model.TodoInfo, error) {
-	panic("implement me")
+func (u *todoUseCase) UpdateTodo(ctx context.Context, id string, content *model.TodoContent) (*model.TodoInfo, error) {
+	log := pkgcontext.GetLoggerFromContext(ctx).WithServiceInfo("UpdateTodo")
+	l := log.WithField("content", util.Stringify(content))
+	defer stopwatch.StartWithLogger(l).Stop()
+
+	if id == "" {
+		err := pkgerror.NewHttpError(http.StatusBadRequest, fmt.Errorf("id is blank"))
+		log.Error(err)
+		return nil, err
+	}
+
+	if err := content.Validate(); err != nil {
+		log.WithError(err).Error("validate content error")
+		httpErr := pkgerror.NewHttpError(http.StatusBadRequest, err)
+		return nil, httpErr
+	}
+
+	t, err := u.todoRepo.GetById(ctx, u.db, id)
+	if err != nil {
+		log.WithError(err).Error("get todo error")
+		return nil, err
+	}
+
+	t.Topic = content.Topic
+	t.Detail = content.Detail
+	t.DueDate = content.DueDate
+
+	result, err := func(ctx context.Context, db *gorm.DB) (*entity.Todo, error) {
+
+		defer db.RollbackUnlessCommitted()
+
+		res, err := u.todoRepo.UpdateTodo(ctx, db, t)
+		if err != nil {
+			log.WithError(err).Error("create todo error")
+			return nil, err
+		}
+
+		if err = db.Commit().Error; err != nil {
+			log.WithError(err).Error("commit error")
+			return nil, err
+		}
+
+		return res, nil
+	}(ctx, u.db.Begin())
+	if err != nil {
+		log.WithError(err).Error("create error")
+		return nil, err
+	}
+
+	res := &model.TodoInfo{
+		TodoContent: model.TodoContent{
+			Topic:   result.Topic,
+			Detail:  result.Detail,
+			DueDate: result.DueDate,
+		},
+		ID:       result.ID,
+		IsDone:   result.IsDone,
+		CreateAt: result.CreatedAt,
+		UpdateAt: result.UpdatedAt,
+	}
+
+	return res, nil
 }
 
 func (u *todoUseCase) DeleteTodo(ctx context.Context, id string) error {
