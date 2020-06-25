@@ -230,3 +230,58 @@ func TestTodoUseCase_UpdateTodo(t *testing.T) {
 		assert.Equal(t, err.Error(), "db error")
 	})
 }
+
+func TestTodoUseCase_DeleteTodo(t *testing.T) {
+	t.Run("delete success", func(t *testing.T) {
+		db, smock, repo := createMock()
+
+		id := util.NewID()
+
+		repo.On("DeleteTodo", mock.Anything, mock.Anything, mock.Anything).
+			Return(nil)
+
+		smock.ExpectBegin()
+		smock.ExpectCommit()
+
+		u := NewTodoUseCase(db, &repo)
+
+		err := u.DeleteTodo(context.Background(), id)
+
+		require.Nil(t, err)
+	})
+
+	t.Run("delete fail, id is blank", func(t *testing.T) {
+		db, _, repo := createMock()
+
+		u := NewTodoUseCase(db, &repo)
+
+		err := u.DeleteTodo(context.Background(), "")
+
+		require.NotNil(t, err)
+		require.True(t, pkgerror.IsHttpError(err))
+
+		httpErr := err.(pkgerror.HttpError)
+		assert.Equal(t, httpErr.Code(), http.StatusBadRequest)
+		assert.Equal(t, httpErr.Error(), "id is blank")
+	})
+
+	t.Run("update fail, database error", func(t *testing.T) {
+		db, smock, repo := createMock()
+
+		id := util.NewID()
+
+		repo.On("DeleteTodo", mock.Anything, mock.Anything, mock.Anything).
+			Return(fmt.Errorf("db error"))
+
+		smock.ExpectBegin()
+		smock.ExpectRollback()
+
+		u := NewTodoUseCase(db, &repo)
+
+		err := u.DeleteTodo(context.Background(), id)
+
+		require.NotNil(t, err)
+
+		assert.Equal(t, err.Error(), "db error")
+	})
+}
