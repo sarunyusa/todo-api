@@ -14,7 +14,7 @@ type TodoUseCase interface {
 	SetTodoDone(ctx context.Context, id string) error
 
 	GetNotDoneTodo(ctx context.Context) (*[]model.TodoInfo, error)
-	GetTodoById(ctx context.Context) (*model.TodoInfo, error)
+	GetTodoById(ctx context.Context, id string) (*model.TodoInfo, error)
 }
 
 type todoUseCase struct {
@@ -42,7 +42,7 @@ func (t *todoUseCase) GetNotDoneTodo(ctx context.Context) (*[]model.TodoInfo, er
 	panic("implement me")
 }
 
-func (t *todoUseCase) GetTodoById(ctx context.Context) (*model.TodoInfo, error) {
+func (t *todoUseCase) GetTodoById(ctx context.Context, id string) (*model.TodoInfo, error) {
 	panic("implement me")
 }
 

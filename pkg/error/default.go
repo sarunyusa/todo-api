@@ -2,15 +2,15 @@ package error
 
 type HttpError interface {
 	error
-	Code() uint
+	Code() int
 }
 
 type httpError struct {
-	code uint
+	code int
 	err  error
 }
 
-func (e *httpError) Code() uint {
+func (e *httpError) Code() int {
 	return e.code
 }
 
@@ -18,7 +18,7 @@ func (e *httpError) Error() string {
 	return e.Error()
 }
 
-func NewHttpError(code uint, err error) HttpError {
+func NewHttpError(code int, err error) HttpError {
 	return &httpError{
 		code: code,
 		err:  err,
