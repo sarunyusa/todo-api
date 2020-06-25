@@ -1,0 +1,24 @@
+version: '3'
+services:
+  todo-postgres:
+    image: postgres
+    container_name: todo-postgres
+    ports:
+      - "5432:5432"
+    networks:
+      - todo-network
+    environment:
+      POSTGRES_PASSWORD: P@ssw0rd
+
+  todo-api:
+    image: todo-api:latest
+    ports:
+      - "8080:8080"
+    networks:
+      - todo-network
+    restart: always
+    depends_on:
+      - todo-postgres
+
+networks:
+  todo-network:
