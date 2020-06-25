@@ -233,7 +233,35 @@ func (u *todoUseCase) GetNotDoneTodo(ctx context.Context) (*[]model.TodoInfo, er
 }
 
 func (u *todoUseCase) GetTodoById(ctx context.Context, id string) (*model.TodoInfo, error) {
-	panic("implement me")
+	log := pkgcontext.GetLoggerFromContext(ctx).WithServiceInfo("GetTodoById")
+	l := log.WithField("id", id)
+	defer stopwatch.StartWithLogger(l).Stop()
+
+	if id == "" {
+		err := pkgerror.NewHttpError(http.StatusBadRequest, fmt.Errorf("id is blank"))
+		log.Error(err)
+		return nil, err
+	}
+
+	t, err := u.todoRepo.GetById(ctx, u.db, id)
+	if err != nil {
+		log.WithError(err).Error("get todo error")
+		return nil, err
+	}
+
+	res := &model.TodoInfo{
+		TodoContent: model.TodoContent{
+			Topic:   t.Topic,
+			Detail:  t.Detail,
+			DueDate: t.DueDate,
+		},
+		ID:       t.ID,
+		IsDone:   t.IsDone,
+		CreateAt: t.CreatedAt,
+		UpdateAt: t.UpdatedAt,
+	}
+
+	return res, nil
 }
 
 func NewTodoUseCase(db *gorm.DB, todoRepo repository.TodoRepository) TodoUseCase {
