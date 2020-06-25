@@ -1,18 +1,18 @@
-#Todo API
+# Todo API
 
-###How to run
+## How to run
 1. Use `make api-docker-image` to create docker image of API
 2. `make start-compose` to start API with database
 3. `make log-compose` to view log
 4. `make stop-compose` and `make restart-compose` to stop and restart API and database
 5. The API will available on `http://0.0.0.0:8080`
 
-###API
+## API
 
-####`GET` `/`
+#### `GET` `/`
 Health check
 
-####`POST` `/todo`
+#### `POST` `/todo`
 Create todo
 
 example request
@@ -40,7 +40,7 @@ example response
 }
 ```
 
-####`PUT` `/todo/{id}`
+#### `PUT` `/todo/{id}`
 Edit todo of the {id}
 
 example request
@@ -68,13 +68,13 @@ example response
 }
 ```
 
-####`DELETE` `/todo/{id}`
+#### `DELETE` `/todo/{id}`
 Delete todo of the {id} - There are no request and response body
 
-####`PUT` `/todo/{id}/done`
+#### `PUT` `/todo/{id}/done`
 Set todo of the {id} to done - There are no request and response body
 
-####`GET` `/todo/{id}`
+#### `GET` `/todo/{id}`
 Get todo by {id}
 
 example response
@@ -93,7 +93,7 @@ example response
 }
 ```
 
-####`GET` `/todo/`
+#### `GET` `/todo/`
 Get todo that not done yet
 
 example response
