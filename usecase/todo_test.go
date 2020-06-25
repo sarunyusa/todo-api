@@ -436,3 +436,89 @@ func TestTodoUseCase_GetTodoById(t *testing.T) {
 		assert.Equal(t, err.Error(), "get todo error")
 	})
 }
+
+func TestTodoUseCase_GetNotDoneTodo(t *testing.T) {
+	t.Run("get not done success", func(t *testing.T) {
+		db, _, repo := createMock()
+
+		tds := make([]entity.Todo, 3)
+
+		tds[0] = entity.Todo{
+			Base: entity.Base{
+				ID:        util.NewID(),
+				CreatedAt: time.Now(),
+				UpdatedAt: time.Now(),
+				DeletedAt: nil,
+			},
+			Topic:   "test topic1",
+			Detail:  ptr.String("test detail1"),
+			DueDate: ptr.Time(time.Now()),
+			IsDone:  false,
+		}
+
+		tds[1] = entity.Todo{
+			Base: entity.Base{
+				ID:        util.NewID(),
+				CreatedAt: time.Now(),
+				UpdatedAt: time.Now(),
+				DeletedAt: nil,
+			},
+			Topic:   "test topic2",
+			Detail:  ptr.String("test detail2"),
+			DueDate: ptr.Time(time.Now()),
+			IsDone:  false,
+		}
+
+		tds[2] = entity.Todo{
+			Base: entity.Base{
+				ID:        util.NewID(),
+				CreatedAt: time.Now(),
+				UpdatedAt: time.Now(),
+				DeletedAt: nil,
+			},
+			Topic:   "test topic3",
+			Detail:  ptr.String("test detail3"),
+			DueDate: ptr.Time(time.Now()),
+			IsDone:  false,
+		}
+
+		repo.On("GetNotDone", mock.Anything, mock.Anything).
+			Return(&tds, nil)
+
+		u := NewTodoUseCase(db, &repo)
+
+		res, err := u.GetNotDoneTodo(context.Background())
+
+		require.Nil(t, err)
+		require.NotNil(t, res)
+
+		list := *res
+		assert.Equal(t, 3, len(list))
+
+		for i, res := range list {
+			assert.Equal(t, res.ID, tds[i].ID)
+			assert.Equal(t, res.CreateAt, tds[i].CreatedAt)
+			assert.Equal(t, res.UpdateAt, tds[i].UpdatedAt)
+			assert.Equal(t, res.Topic, tds[i].Topic)
+			assert.Equal(t, res.Detail, tds[i].Detail)
+			assert.Equal(t, res.DueDate, tds[i].DueDate)
+			assert.Equal(t, res.IsDone, tds[i].IsDone)
+		}
+	})
+
+	t.Run("set done fail, db error", func(t *testing.T) {
+		db, _, repo := createMock()
+
+		repo.On("GetNotDone", mock.Anything, mock.Anything).
+			Return(nil, fmt.Errorf("db error"))
+
+		u := NewTodoUseCase(db, &repo)
+
+		res, err := u.GetNotDoneTodo(context.Background())
+
+		require.NotNil(t, err)
+		require.Nil(t, res)
+
+		assert.Equal(t, err.Error(), "db error")
+	})
+}
