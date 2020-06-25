@@ -86,7 +86,7 @@ func (u *todoUseCase) CreateTodo(ctx context.Context, content *model.TodoContent
 
 func (u *todoUseCase) UpdateTodo(ctx context.Context, id string, content *model.TodoContent) (*model.TodoInfo, error) {
 	log := pkgcontext.GetLoggerFromContext(ctx).WithServiceInfo("UpdateTodo")
-	l := log.WithField("content", util.Stringify(content))
+	l := log.WithField("id", id).WithField("content", util.Stringify(content))
 	defer stopwatch.StartWithLogger(l).Stop()
 
 	if id == "" {
@@ -117,7 +117,7 @@ func (u *todoUseCase) UpdateTodo(ctx context.Context, id string, content *model.
 
 		res, err := u.todoRepo.UpdateTodo(ctx, db, t)
 		if err != nil {
-			log.WithError(err).Error("create todo error")
+			log.WithError(err).Error("update todo error")
 			return nil, err
 		}
 
@@ -129,7 +129,7 @@ func (u *todoUseCase) UpdateTodo(ctx context.Context, id string, content *model.
 		return res, nil
 	}(ctx, u.db.Begin())
 	if err != nil {
-		log.WithError(err).Error("create error")
+		log.WithError(err).Error("update error")
 		return nil, err
 	}
 
@@ -149,7 +149,39 @@ func (u *todoUseCase) UpdateTodo(ctx context.Context, id string, content *model.
 }
 
 func (u *todoUseCase) DeleteTodo(ctx context.Context, id string) error {
-	panic("implement me")
+	log := pkgcontext.GetLoggerFromContext(ctx).WithServiceInfo("UpdateTodo")
+	l := log.WithField("id", id)
+	defer stopwatch.StartWithLogger(l).Stop()
+
+	if id == "" {
+		err := pkgerror.NewHttpError(http.StatusBadRequest, fmt.Errorf("id is blank"))
+		log.Error(err)
+		return err
+	}
+
+	err := func(ctx context.Context, db *gorm.DB) error {
+
+		defer db.RollbackUnlessCommitted()
+
+		err := u.todoRepo.DeleteTodo(ctx, db, id)
+		if err != nil {
+			log.WithError(err).Error("delete todo error")
+			return err
+		}
+
+		if err = db.Commit().Error; err != nil {
+			log.WithError(err).Error("commit error")
+			return err
+		}
+
+		return nil
+	}(ctx, u.db.Begin())
+	if err != nil {
+		log.WithError(err).Error("delete error")
+		return err
+	}
+
+	return nil
 }
 
 func (u *todoUseCase) SetTodoDone(ctx context.Context, id string) error {
