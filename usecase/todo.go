@@ -22,27 +22,27 @@ type todoUseCase struct {
 	todoRepo repository.TodoRepository
 }
 
-func (t todoUseCase) CreateTodo(ctx context.Context, content *model.TodoContent) (*model.TodoInfo, error) {
+func (t *todoUseCase) CreateTodo(ctx context.Context, content *model.TodoContent) (*model.TodoInfo, error) {
 	panic("implement me")
 }
 
-func (t todoUseCase) UpdateTodo(ctx context.Context, content *model.TodoContent) (*model.TodoInfo, error) {
+func (t *todoUseCase) UpdateTodo(ctx context.Context, content *model.TodoContent) (*model.TodoInfo, error) {
 	panic("implement me")
 }
 
-func (t todoUseCase) DeleteTodo(ctx context.Context, id string) error {
+func (t *todoUseCase) DeleteTodo(ctx context.Context, id string) error {
 	panic("implement me")
 }
 
-func (t todoUseCase) SetTodoDone(ctx context.Context, id string) error {
+func (t *todoUseCase) SetTodoDone(ctx context.Context, id string) error {
 	panic("implement me")
 }
 
-func (t todoUseCase) GetNotDoneTodo(ctx context.Context) (*[]model.TodoInfo, error) {
+func (t *todoUseCase) GetNotDoneTodo(ctx context.Context) (*[]model.TodoInfo, error) {
 	panic("implement me")
 }
 
-func (t todoUseCase) GetTodoById(ctx context.Context) (*model.TodoInfo, error) {
+func (t *todoUseCase) GetTodoById(ctx context.Context) (*model.TodoInfo, error) {
 	panic("implement me")
 }
 
