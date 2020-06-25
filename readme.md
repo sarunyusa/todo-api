@@ -76,6 +76,8 @@ Set todo of the {id} to done - There are no request and response body
 
 ####`GET` `/todo/{id}`
 Get todo by {id}
+
+example response
 ```json
 {
     "code": 200,
@@ -93,6 +95,8 @@ Get todo by {id}
 
 ####`GET` `/todo/`
 Get todo that not done yet
+
+example response
 ```json
 {
     "code": 200,
