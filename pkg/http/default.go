@@ -46,7 +46,7 @@ func WriteResponseData(w http.ResponseWriter, data interface{}) error {
 	response := &model.CommonResponse{
 		Code:    status,
 		Message: "",
-		Data:    nil,
+		Data:    data,
 	}
 
 	_, err := w.Write(response.ToJsonBytes())
